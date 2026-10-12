@@ -94,21 +94,33 @@ class RiskVisualizer:
         if recall_risk_summary.empty:
             return
 
-        campaigns = recall_risk_summary.head(20).sort_values("complaint_count")
+        campaigns = recall_risk_summary.head(20).copy()
+        campaigns["campaign_vehicle"] = (
+            campaigns["nhtsa_id"]
+            + " — "
+            + campaigns["vehicle_examples"]
+        )
+        campaigns = campaigns.sort_values("complaint_count")
         figure = px.bar(
             campaigns,
             x="complaint_count",
-            y="nhtsa_id",
+            y="campaign_vehicle",
             orientation="h",
             color="mean_safety_severity",
             hover_data=[
+                "nhtsa_id",
+                "vehicle_count",
+                "vehicle_examples",
                 "severe_complaint_count",
                 "mean_negative_sentiment",
                 "max_safety_severity",
             ],
             labels={
                 "complaint_count": "Potentially associated complaints",
+                "campaign_vehicle": "Recall campaign and sampled vehicles",
                 "nhtsa_id": "NHTSA vehicle recall campaign ID",
+                "vehicle_count": "Distinct sampled vehicles",
+                "vehicle_examples": "Sampled vehicles",
                 "mean_safety_severity": "Mean safety severity",
             },
             title=(

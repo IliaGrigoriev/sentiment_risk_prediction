@@ -55,11 +55,20 @@ class RiskAnalyzer:
                     "mean_safety_severity",
                     "max_safety_severity",
                     "severe_complaint_count",
+                    "vehicle_count",
+                    "vehicle_examples",
                 ]
             )
 
         matched["nhtsa_id"] = matched["matching_recall_ids"].str.split("|")
         matched = matched.explode("nhtsa_id")
+        matched["vehicle"] = (
+            matched["make"].astype(str)
+            + " "
+            + matched["model"].astype(str)
+            + " "
+            + matched["model_year"].astype(str)
+        )
         matched["severe_complaint"] = matched[
             "safety_severity_score"
         ].ge(3)
@@ -72,6 +81,8 @@ class RiskAnalyzer:
                 mean_safety_severity=("safety_severity_score", "mean"),
                 max_safety_severity=("safety_severity_score", "max"),
                 severe_complaint_count=("severe_complaint", "sum"),
+                vehicle_count=("vehicle", "nunique"),
+                vehicle_examples=("vehicle", self._vehicle_examples),
             )
             .sort_values(
                 ["severe_complaint_count", "complaint_count"],
@@ -79,3 +90,13 @@ class RiskAnalyzer:
             )
             .reset_index(drop=True)
         )
+
+    # Format representative vehicles for campaign labels and tooltips
+    # ---------------------------------------------------------------
+    def _vehicle_examples(self, vehicles):
+        unique_vehicles = sorted(set(vehicles.dropna()))
+        examples = ", ".join(unique_vehicles[:3])
+        remaining = len(unique_vehicles) - 3
+        if remaining > 0:
+            examples = f"{examples} (+{remaining} more)"
+        return examples
