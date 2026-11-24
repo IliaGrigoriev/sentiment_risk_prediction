@@ -31,6 +31,14 @@ RECALL_RISK_SUMMARY_PATH = os.path.join(
     INTERM_RES,
     "recall_risk_summary.parquet",
 )
+KNOWLEDGE_GRAPH_PATH = os.path.join(INTERM_RES, "sentiment_risk_graph.ttl")
+
+# Triplestore connection settings
+TRIPLESTORE_GRAPH_STORE_URL = None
+TRIPLESTORE_QUERY_URL = None
+TRIPLESTORE_GRAPH_URI = None
+TRIPLESTORE_USERNAME = None
+TRIPLESTORE_PASSWORD = None
 
 FIGS_PATH = os.path.join(REPO_PATH, "figs")
 

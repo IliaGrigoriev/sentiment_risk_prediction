@@ -39,15 +39,9 @@ class SentimentEstimator:
                 for item in scores
             }
 
-            sentiment = (
-                probabilities["positive"]
-                - probabilities["negative"]
-            )
-
             sentiments.append(
                 {
                     "text": text,
-                    "sentiment": sentiment,
                     "probabilities": probabilities,
                 }
             )

@@ -47,7 +47,7 @@ class FeatureExtractor:
         "VEHICLES_TOWED_YN",
         "has_matching_recall",
         "matching_recall_count",
-        "matching_recall_ids",
+        "matching_recall_ids"
     ]
 
     # Load and sample the complaint fields required for feature extraction

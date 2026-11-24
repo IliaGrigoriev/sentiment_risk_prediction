@@ -4,25 +4,25 @@ import pandas as pd
 class DataCleaner:
 
     _COMPLAINT_RENAMES = {
-        "MFR_NAME": "manufacturer",
-        "MAKETXT": "make",
-        "MODELTXT": "model",
-        "YEARTXT": "model_year",
-        "FAILDATE": "incident_date",
-        "DATEA": "date_added",
-        "LDATE": "complaint_date",
-        "PURCH_DT": "purchase_date",
-        "MANUF_DT": "manufacture_date",
-        "CDESCR": "complaint_narrative",
+        "MFR_NAME" : "manufacturer",
+        "MAKETXT"  : "make",
+        "MODELTXT" : "model",
+        "YEARTXT"  : "model_year",
+        "FAILDATE" : "incident_date",
+        "DATEA"    : "date_added",
+        "LDATE"    : "complaint_date",
+        "PURCH_DT" : "purchase_date",
+        "MANUF_DT" : "manufacture_date",
+        "CDESCR"   : "complaint_narrative",
     }
 
     _RECALL_RENAMES = {
-        "NHTSA ID": "nhtsa_id",
-        "DOCUMENT NAME": "document_name",
-        "MAKE": "make",
-        "MODEL": "model",
-        "MODEL YEAR": "model_year",
-        "SUMMARY": "summary",
+        "NHTSA ID"      : "nhtsa_id",
+        "DOCUMENT NAME" : "document_name",
+        "MAKE"          : "make",
+        "MODEL"         : "model",
+        "MODEL YEAR"    : "model_year",
+        "SUMMARY"       : "summary",
     }
 
     _RECALL_DEDUPLICATION_COLUMNS = [

@@ -3,3 +3,4 @@ pyarrow
 torch
 transformers
 plotly
+rdflib

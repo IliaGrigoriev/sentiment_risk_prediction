@@ -4,12 +4,17 @@ This project combines NHTSA consumer complaints with recall campaigns to demonst
 
 The workflow:
 
-1. Loads and cleans NHTSA complaint and recall data.
-2. Deduplicates overlapping recall exports.
-3. Finds potential complaint-to-recall matches by make, model, and model year.
-4. Extracts sentiment and safety-severity features from a configurable complaint sample.
-5. Aggregates the features by vehicle and recall campaign.
-6. Produces interactive Plotly figures for a risk-analysis demo.
+1. **Cleaning**
+
+   - **Complaints:** Loads and normalizes NHTSA consumer complaint data.
+   - **Recalls:** Loads, normalizes, and deduplicates NHTSA recall data.
+
+2. **Connects complaints with recalls** by make, model, and model year.
+3. Extracts sentiment and safety-severity features from a configurable complaint sample.
+4. Aggregates the features by vehicle and recall campaign.
+5. Produces interactive Plotly figures for a risk-analysis demo.
+6. Exports the results as RDF triples and optionally uploads them to a
+   SPARQL-compatible triplestore.
 
 ## Project structure
 
@@ -26,6 +31,9 @@ sentiment_risk_prediction/
 ├── risk_analysis/
 │   ├── risk_analyzer.py
 │   └── risk_visualizer.py
+├── knowledge_graph/
+│   ├── rdf_exporter.py
+│   └── triplestore_client.py
 ├── const.py
 ├── features.py
 ├── sentiment_estimator.py
@@ -33,7 +41,7 @@ sentiment_risk_prediction/
 └── req.txt
 ```
 
-`DataManager` coordinates loading, cleaning, matching, reporting, and persistence. `FeatureExtractor` creates complaint-level features. `RiskAnalyzer` performs feature-dependent aggregation, while `RiskVisualizer` generates the demo figures. The complete workflow is called only from `main.routine()`.
+`DataManager` coordinates loading, cleaning, matching, reporting, and persistence. `FeatureExtractor` creates complaint-level features. `RiskAnalyzer` performs feature-dependent aggregation, while `RiskVisualizer` generates the demo figures. `RDFExporter` converts the results to RDF, and `TriplestoreClient` uploads and queries them. The complete workflow is called only from `main.routine()`.
 
 ## Data
 
@@ -78,13 +86,15 @@ Run:
 .srp/bin/python main.py
 ```
 
-The routine reports its four main stages:
+The routine reports six main stages:
 
 ```text
-1/4 Cleaning complaints and recall documents
-2/4 Matching complaints to potential recall campaigns
-3/4 Extracting sentiment and safety features from a sample
-4/4 Summarizing vehicle risk and creating demo figures
+1/6 Cleaning complaints and recall documents
+2/6 Matching complaints to potential recall campaigns
+3/6 Extracting sentiment and safety features from a sample
+4/6 Summarizing vehicle risk and creating demo figures
+5/6 Exporting analysis results as RDF triples
+6/6 Uploading triples, or skipping upload when no endpoint is configured
 ```
 
 ## Sampling
@@ -170,7 +180,61 @@ complaint_features.parquet
 vehicle_risk_summary.parquet
 recall_risk_summary.parquet
 data_report.json
+sentiment_risk_graph.ttl
 ```
+
+## Triplestore integration
+
+Every run writes a Turtle RDF file to `interm/sentiment_risk_graph.ttl`.
+The graph contains complaint, vehicle, and recall resources together with their
+sentiment, safety-severity, and potential recall-match relationships.
+
+Uploading is optional. Triplestore configuration is kept directly in
+`const.py`; this project does not read triplestore settings from environment
+variables:
+
+```python
+TRIPLESTORE_GRAPH_STORE_URL = "http://localhost:3030/risk/data?default"
+TRIPLESTORE_QUERY_URL = "http://localhost:3030/risk/query"
+TRIPLESTORE_GRAPH_URI = None
+TRIPLESTORE_USERNAME = None
+TRIPLESTORE_PASSWORD = None
+```
+
+The settings are:
+
+| Constant | Purpose |
+|---|---|
+| `TRIPLESTORE_GRAPH_STORE_URL` | RDF Graph Store endpoint used to upload triples with HTTP `PUT` |
+| `TRIPLESTORE_QUERY_URL` | SPARQL endpoint used to execute queries with HTTP `POST` |
+| `TRIPLESTORE_GRAPH_URI` | Optional URI of the named graph receiving the triples |
+| `TRIPLESTORE_USERNAME` | Optional HTTP Basic Authentication username |
+| `TRIPLESTORE_PASSWORD` | Optional HTTP Basic Authentication password |
+
+Leave `TRIPLESTORE_GRAPH_STORE_URL` as `None` to create the local Turtle file
+without uploading it. If `TRIPLESTORE_QUERY_URL` is `None`, the client uses the
+graph-store URL for queries as well.
+
+After uploading, a query for vehicles with severe complaints, strongly
+negative sentiment, and no potential recall match can be written as:
+
+```sparql
+PREFIX sr: <https://example.org/sentiment-risk/>
+
+SELECT ?vehicle ?sentiment ?severity
+WHERE {
+  ?vehicle a sr:Vehicle ;
+           sr:meanNegativeSentiment ?sentiment ;
+           sr:maxSafetySeverity ?severity ;
+           sr:potentialEmergingSignal true .
+
+  FILTER (?sentiment >= 0.7 && ?severity >= 3)
+}
+ORDER BY DESC(?severity) DESC(?sentiment)
+```
+
+The RDF namespace defaults to `https://example.org/sentiment-risk/`, as defined
+by `RDFExporter`.
 
 ## Figures
 
