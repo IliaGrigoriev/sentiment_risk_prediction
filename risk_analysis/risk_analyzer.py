@@ -27,9 +27,7 @@ class RiskAnalyzer:
                 matching_recall_ids=("matching_recall_ids", "first"),
             )
         )
-        summary["severe_complaint_rate"] = (
-            summary["severe_complaint_count"] / summary["complaint_count"]
-        )
+        summary["severe_complaint_rate"] = summary["severe_complaint_count"] / summary["complaint_count"]
         summary["potential_emerging_signal"] = (
             summary["severe_complaint_count"].gt(0)
             & ~summary["has_matching_recall"]

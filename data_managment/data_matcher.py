@@ -42,9 +42,7 @@ class DataMatcher:
             on=self._MATCH_COLUMNS,
             validate="many_to_one",
         )
-        matched["matching_recall_count"] = (
-            matched["matching_recall_count"].fillna(0).astype("Int32")
-        )
+        matched["matching_recall_count"] = matched["matching_recall_count"].fillna(0).astype("Int32")
         matched["matching_recall_ids"] = matched[
             "matching_recall_ids"
         ].fillna("")

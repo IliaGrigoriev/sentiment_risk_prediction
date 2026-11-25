@@ -95,11 +95,7 @@ class RiskVisualizer:
             return
 
         campaigns = recall_risk_summary.head(20).copy()
-        campaigns["campaign_vehicle"] = (
-            campaigns["nhtsa_id"]
-            + " — "
-            + campaigns["vehicle_examples"]
-        )
+        campaigns["campaign_vehicle"] = campaigns["nhtsa_id"] + " — " + campaigns["vehicle_examples"]
         campaigns = campaigns.sort_values("complaint_count")
         figure = px.bar(
             campaigns,

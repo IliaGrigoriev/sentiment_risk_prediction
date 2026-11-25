@@ -1,6 +1,6 @@
 # Sentiment-Based Vehicle Safety Risk Analysis
 
-This project combines NHTSA consumer complaints with recall campaigns to demonstrate how consumer sentiment and reported safety outcomes can support vehicle-risk exploration.
+The goal of this study is to identify vehicle models whose reported safety incidents warrant closer investigation and to characterize the negative sentiment in their complaints. The study uses NHTSA consumer complaints and recall campaign records.
 
 The workflow:
 

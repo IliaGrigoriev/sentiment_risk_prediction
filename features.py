@@ -84,7 +84,7 @@ class FeatureExtractor:
 
     # Extract negative sentiment probabilities from complaint narratives
     # ------------------------------------------------------------------
-    def extract_sentiment_score(self):
+    def _extract_sentiment_score(self):
         scores = pd.Series(pd.NA, index=self._data.index, dtype="Float32")
         narratives = self._data["complaint_narrative"]
         valid_indexes = narratives[narratives.notna() & narratives.str.strip().ne("")].index
@@ -104,7 +104,7 @@ class FeatureExtractor:
 
     # Extract an independent safety-severity score from reported outcomes
     # -------------------------------------------------------------------
-    def extract_safety_severity_score(self):
+    def _extract_safety_severity_score(self):
         scores = pd.Series(0, index=self._data.index, dtype="Int8")
 
         for column, rule_type, severity in self._SAFETY_SEVERITY_RULES:
@@ -121,48 +121,36 @@ class FeatureExtractor:
 
         return scores
 
-    # Extract sentiment and safety severity as independent features
-    # -------------------------------------------------------------
-    def extract_features(self):
-        identifier_columns = [
-            column
-            for column in [
-                "CMPLID",
-                "ODINO",
-                "manufacturer",
-                "make",
-                "model",
-                "model_year",
-                "has_matching_recall",
-                "matching_recall_count",
-                "matching_recall_ids",
-            ]
-            if column in self._data.columns
+    # Extract features on first access and return the cached dataset
+    # --------------------------------------------------------------
+    def get_features(self):
+        if self._features is not None:
+            return self._features
+
+        candidate_columns = [
+            "CMPLID",
+            "ODINO",
+            "manufacturer",
+            "make",
+            "model",
+            "model_year",
+            "has_matching_recall",
+            "matching_recall_count",
+            "matching_recall_ids",
         ]
-        self._features = self._data[identifier_columns].copy()
-        self._features["sentiment_score"] = self.extract_sentiment_score()
-        self._features["safety_severity_score"] = (
-            self.extract_safety_severity_score()
-        )
+        features = self._data[candidate_columns].copy()
+        features["sentiment_score"] = self._extract_sentiment_score()
+        features["safety_severity_score"] = self._extract_safety_severity_score()
+        self._features = features
 
         return self._features
 
     # Save the extracted features in the intermediate data folder
     # -----------------------------------------------------------
     def save_features(self, output_path=COMPLAINT_FEATURES_PATH):
-        if self._features is None:
-            self.extract_features()
-
+        features = self.get_features()
         os.makedirs(INTERM_RES, exist_ok=True)
-        self._features.to_parquet(output_path, index=False)
-
-    # Return the extracted feature dataset
-    # ------------------------------------
-    def get_features(self):
-        if self._features is None:
-            return self.extract_features()
-
-        return self._features
+        features.to_parquet(output_path, index=False)
 
     # Return the percentage and number of sampled complaints
     # ------------------------------------------------------
